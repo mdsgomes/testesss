@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pergunta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20%;
+            background-color: #000;
+            color: white;
+        }
+
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        #nao {
+            position: relative;
+        }
+
+        #fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #mensagem {
+            font-size: 30px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Você quer me beijar?</h1>
+    <button id="sim">Sim</button>
+    <button id="nao">Não</button>
+    <div id="mensagem">Aí sim, resposta correta!!!</div>
+
+    <canvas id="fireworks"></canvas>
+
+    <script>
+        const btnSim = document.getElementById('sim');
+        const btnNao = document.getElementById('nao');
+        const mensagem = document.getElementById('mensagem');
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        let fireworks = [];
+
+        btnNao.addEventListener('mouseover', function() {
+            const x = Math.random() * (window.innerWidth - this.clientWidth);
+            const y = Math.random() * (window.innerHeight - this.clientHeight);
+            this.style.left = `${x}px`;
+            this.style.top = `${y}px`;
+        });
+
+        btnNao.addEventListener('click', function() {
+            alert('Clique no "Sim"!');
+        });
+
+        btnSim.addEventListener('click', function() {
+            mensagem.style.display = 'block';
+            startFireworks();
+        });
+
+        function startFireworks() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function random(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            function Firework(x, y, colors) {
+                this.x = x;
+                this.y = y;
+                this.colors = colors;
+                this.sparks = [];
+
+                for (let i = 0; i < 100; i++) {
+                    const spark = {
+                        x: this.x,
+                        y: this.y,
+                        radius: random(2, 4),
+                        vx: random(-5, 5),
+                        vy: random(-5, 5),
+                        alpha: 1,
+                        decay: random(0.01, 0.02)
+                    };
+                    this.sparks.push(spark);
+                }
+
+                this.update = function() {
+                    for (let i = 0; i < this.sparks.length; i++) {
+                        const spark = this.sparks[i];
+                        spark.x += spark.vx;
+                        spark.y += spark.vy;
+                        spark.alpha -= spark.decay;
+
+                        if (spark.alpha <= 0) {
+                            this.sparks.splice(i, 1);
+                            i--;
+                        }
+                    }
+                };
+
+                this.draw = function() {
+                    for (let i = 0; i < this.sparks.length; i++) {
+                        const spark = this.sparks[i];
+                        ctx.beginPath();
+                        ctx.arc(spark.x, spark.y, spark.radius, 0, 2 * Math.PI);
+                        ctx.fillStyle = `rgba(${this.colors[0]}, ${this.colors[1]}, ${this.colors[2]}, ${spark.alpha})`;
+                        ctx.fill();
+                    }
+                };
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (fireworks.length < 5) {
+                    fireworks.push(new Firework(random(0, canvas.width), random(0, canvas.height), [random(0, 255), random(0, 255), random(0, 255)]));
+                }
+
+                for (let i = 0; i < fireworks.length; i++) {
+                    const firework = fireworks[i];
+                    firework.update();
+                    firework.draw();
+
+                    if (firework.sparks.length === 0) {
+                        fireworks.splice(i, 1);
+                        i--;
+                    }
+                }
+
+                requestAnimationFrame(loop);
+            }
+
+            loop();
+        }
+    </script>
+
+</body>
+</html>
